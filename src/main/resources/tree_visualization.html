@@ -1,203 +1,815 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Binary Tree Visualization</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Árbol Binario</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f0f0f0;
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #e74c3c;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --node-size: 50px;
         }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: white;
+        }
+
+        header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        #treeCanvas {
+
+        h1, h2, h3 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .tab-container {
+            margin-top: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            background-color: var(--light-color);
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            background-color: #ddd;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .tab:hover {
+            background-color: #ccc;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-height: 400px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .visualization-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .left-panel, .right-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .graphic-tree {
+            width: 100%;
+            height: 350px;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            margin: 20px 0;
+            margin-top: 10px;
+            border-radius: 8px;
+            position: relative;
+            overflow: auto;
+            background-color: #f9f9f9;
         }
-        .traversal-info {
-            margin: 20px 0;
+
+        .console-tree {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .tree-node {
+            position: absolute;
+            width: var(--node-size);
+            height: var(--node-size);
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .tree-node:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .tree-edge {
+            position: absolute;
+            background-color: #aaa;
+            height: 2px;
+            transform-origin: 0 0;
+        }
+
+        .console {
+            background-color: var(--dark-color);
+            color: white;
             padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
+            border-radius: 8px;
+            font-family: monospace;
+            margin-top: 10px;
+            white-space: pre;
+            line-height: 1.5;
+            overflow-x: auto;
+            min-height: 100px;
+            font-size: 1rem;
         }
-        h1 {
-            color: #2c3e50;
+
+        .ascii-tree {
+            font-family: monospace;
+            white-space: pre;
+            padding: 10px;
+            background-color: #002b36;
+            color: #93a1a1;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 10px;
+            line-height: 1.2;
+            min-height: 150px;
+        }
+
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            min-width: 120px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        button.secondary {
+            background-color: var(--secondary-color);
+        }
+
+        button.secondary:hover {
+            background-color: #27ae60;
+        }
+
+        button.accent {
+            background-color: var(--accent-color);
+        }
+
+        button.accent:hover {
+            background-color: #c0392b;
+        }
+
+        .animation-container {
+            margin-top: 20px;
+            position: relative;
+            height: 40px;
+            background-color: #f0f0f0;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .animation-node {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            left: 0;
+            transition: left 0.5s ease;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid #ccc;
+        }
+
+        .node-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--dark-color);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
+        }
+
+        .section-header {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0 5px 0;
+            border-radius: 5px;
+            font-weight: bold;
             text-align: center;
         }
-        .traversal-title {
-            color: #34495e;
-            margin-bottom: 10px;
-        }
-        .traversal-sequence {
-            font-family: monospace;
-            font-size: 1.2em;
-            color: #2980b9;
+
+        @media (max-width: 768px) {
+            .visualization-container {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Binary Tree Visualization</h1>
-        <canvas id="treeCanvas" width="800" height="400"></canvas>
-        
-        <div class="traversal-info">
-            <h2 class="traversal-title">Preorder Traversal</h2>
-            <div id="preorder" class="traversal-sequence"></div>
+<div class="container">
+    <header>
+        <h1>Visualizador de Árbol Binario</h1>
+        <p>Visualiza el árbol binario y sus diferentes recorridos</p>
+    </header>
+
+    <div class="controls">
+        <button id="btn-reset">Reiniciar</button>
+        <button id="btn-visualize" class="secondary">Animar Recorridos</button>
+        <button id="btn-zoom-in" class="accent">Zoom +</button>
+        <button id="btn-zoom-out">Zoom -</button>
+    </div>
+
+    <div class="tab-container">
+        <div class="tabs">
+            <div class="tab active" data-tab="original">Árbol Original</div>
+            <div class="tab" data-tab="preorden">Preorden</div>
+            <div class="tab" data-tab="inorden">Inorden</div>
+            <div class="tab" data-tab="postorden">Postorden</div>
         </div>
-        
-        <div class="traversal-info">
-            <h2 class="traversal-title">Inorder Traversal</h2>
-            <div id="inorder" class="traversal-sequence"></div>
+
+        <div class="tab-content active" id="original">
+            <h2>Árbol Binario Original</h2>
+            <p>Valores insertados: 71, 81, 96, 55, 77, 69, 89</p>
+
+            <div class="visualization-container">
+                <div class="left-panel">
+                    <div class="section-header">Representación Gráfica</div>
+                    <div id="original-tree" class="graphic-tree"></div>
+                    <div class="animation-container">
+                        <div class="animation-node" id="original-animation">71</div>
+                    </div>
+                </div>
+                <div class="right-panel">
+                    <div class="section-header">Representación en Consola</div>
+                    <div class="ascii-tree" id="original-ascii">
+                        71
+                        /  \
+                        55    81
+                        \    / \
+                        69  77  96
+                        /
+                        89
+                    </div>
+                    <div class="console" id="original-console">
+                        > Árbol creado con los siguientes valores:
+                        > 71, 81, 96, 55, 77, 69, 89
+
+                        > Estructura del árbol:
+                        71
+                        /  \
+                        55   81
+                        \   / \
+                        69 77  96
+                        /
+                        89
+
+                        > Estructura mejorada:
+                        71
+                        /  \
+                        55    81
+                        \    / \
+                        69  77  96
+                        /
+                        89
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div class="traversal-info">
-            <h2 class="traversal-title">Postorder Traversal</h2>
-            <div id="postorder" class="traversal-sequence"></div>
+
+        <div class="tab-content" id="preorden">
+            <h2>Recorrido Preorden</h2>
+            <p>Raíz → Izquierda → Derecha</p>
+
+            <div class="visualization-container">
+                <div class="left-panel">
+                    <div class="section-header">Visualización del Recorrido</div>
+                    <div id="preorden-tree" class="graphic-tree"></div>
+                    <div class="animation-container">
+                        <div class="animation-node" id="preorden-animation">71</div>
+                    </div>
+                </div>
+                <div class="right-panel">
+                    <div class="section-header">Representación en Consola</div>
+                    <div class="ascii-tree" id="preorden-ascii">
+                        1. Visitar raíz (71)
+                        2. Recorrer subárbol izquierdo (55, 69)
+                        3. Recorrer subárbol derecho (81, 77, 96, 89)
+
+                        71 ← 1
+                        /  \
+                        55 ← 2 81 ← 4
+                        \    / \
+                        69 ← 3 77 ← 5  96 ← 6
+                        /
+                        89 ← 7
+                    </div>
+                    <div class="console" id="preorden-console">
+                        > Preorden
+                        > 71, 55, 69, 81, 77, 96, 89
+
+                        > Algoritmo:
+                        function preorden(nodo) {
+                        if (nodo !== null) {
+                        visitar(nodo.valor);    // 1. Visitar nodo
+                        preorden(nodo.izquierdo); // 2. Recorrer izquierda
+                        preorden(nodo.derecho);   // 3. Recorrer derecha
+                        }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="inorden">
+            <h2>Recorrido Inorden</h2>
+            <p>Izquierda → Raíz → Derecha</p>
+
+            <div class="visualization-container">
+                <div class="left-panel">
+                    <div class="section-header">Visualización del Recorrido</div>
+                    <div id="inorden-tree" class="graphic-tree"></div>
+                    <div class="animation-container">
+                        <div class="animation-node" id="inorden-animation">55</div>
+                    </div>
+                </div>
+                <div class="right-panel">
+                    <div class="section-header">Representación en Consola</div>
+                    <div class="ascii-tree" id="inorden-ascii">
+                        1. Recorrer subárbol izquierdo (55, 69)
+                        2. Visitar raíz (71)
+                        3. Recorrer subárbol derecho (77, 81, 89, 96)
+
+                        71 ← 3
+                        /  \
+                        55 ← 1 81 ← 5
+                        \    / \
+                        69 ← 2 77 ← 4  96 ← 7
+                        /
+                        89 ← 6
+                    </div>
+                    <div class="console" id="inorden-console">
+                        > Inorden
+                        > 55, 69, 71, 77, 81, 89, 96
+
+                        > Algoritmo:
+                        function inorden(nodo) {
+                        if (nodo !== null) {
+                        inorden(nodo.izquierdo);  // 1. Recorrer izquierda
+                        visitar(nodo.valor);    // 2. Visitar nodo
+                        inorden(nodo.derecho);    // 3. Recorrer derecha
+                        }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="postorden">
+            <h2>Recorrido Postorden</h2>
+            <p>Izquierda → Derecha → Raíz</p>
+
+            <div class="visualization-container">
+                <div class="left-panel">
+                    <div class="section-header">Visualización del Recorrido</div>
+                    <div id="postorden-tree" class="graphic-tree"></div>
+                    <div class="animation-container">
+                        <div class="animation-node" id="postorden-animation">69</div>
+                    </div>
+                </div>
+                <div class="right-panel">
+                    <div class="section-header">Representación en Consola</div>
+                    <div class="ascii-tree" id="postorden-ascii">
+                        1. Recorrer subárbol izquierdo (55, 69)
+                        2. Recorrer subárbol derecho (77, 89, 96, 81)
+                        3. Visitar raíz (71)
+
+                        71 ← 7
+                        /  \
+                        55 ← 2 81 ← 6
+                        \    / \
+                        69 ← 1 77 ← 3  96 ← 5
+                        /
+                        89 ← 4
+                    </div>
+                    <div class="console" id="postorden-console">
+                        > Postorden
+                        > 69, 55, 77, 89, 96, 81, 71
+
+                        > Algoritmo:
+                        function postorden(nodo) {
+                        if (nodo !== null) {
+                        postorden(nodo.izquierdo); // 1. Recorrer izquierda
+                        postorden(nodo.derecho);   // 2. Recorrer derecha
+                        visitar(nodo.valor);     // 3. Visitar nodo
+                        }
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script>
-        class TreeNode {
-            constructor(value) {
-                this.value = value;
-                this.left = null;
-                this.right = null;
-                this.x = 0;
-                this.y = 0;
-            }
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #3498db;"></div>
+            <span>Nodo Normal</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #e74c3c;"></div>
+            <span>Nodo Actual (Recorrido)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #2ecc71;"></div>
+            <span>Nodo Visitado</span>
+        </div>
+    </div>
+
+    <div class="node-info" id="node-info">
+        <h3>Información del Nodo</h3>
+        <p><strong>Valor:</strong> <span id="info-value">71</span></p>
+        <p><strong>Posición en Preorden:</strong> <span id="info-preorden">1</span></p>
+        <p><strong>Posición en Inorden:</strong> <span id="info-inorden">3</span></p>
+        <p><strong>Posición en Postorden:</strong> <span id="info-postorden">7</span></p>
+    </div>
+</div>
+
+<script>
+    // Estructura del árbol
+    class Node {
+        constructor(value) {
+            this.value = value;
+            this.left = null;
+            this.right = null;
+        }
+    }
+
+    class BinaryTree {
+        constructor() {
+            this.root = null;
+            this.preorderList = [];
+            this.inorderList = [];
+            this.postorderList = [];
         }
 
-        class BinaryTree {
-            constructor() {
-                this.root = null;
+        insert(value) {
+            const newNode = new Node(value);
+
+            if (!this.root) {
+                this.root = newNode;
+                return;
             }
 
-            insert(value) {
-                if (!this.root) {
-                    this.root = new TreeNode(value);
-                    return;
-                }
-
-                const queue = [this.root];
-                while (queue.length > 0) {
-                    const node = queue.shift();
-                    if (!node.left) {
-                        node.left = new TreeNode(value);
-                        return;
-                    } else if (!node.right) {
-                        node.right = new TreeNode(value);
-                        return;
+            const insertNode = (node, newNode) => {
+                if (newNode.value < node.value) {
+                    if (node.left === null) {
+                        node.left = newNode;
+                    } else {
+                        insertNode(node.left, newNode);
                     }
-                    queue.push(node.left);
-                    queue.push(node.right);
+                } else {
+                    if (node.right === null) {
+                        node.right = newNode;
+                    } else {
+                        insertNode(node.right, newNode);
+                    }
                 }
-            }
+            };
 
-            preorder(node = this.root, result = []) {
+            insertNode(this.root, newNode);
+        }
+
+        preorder() {
+            this.preorderList = [];
+            const traverse = node => {
                 if (node) {
-                    result.push(node.value);
-                    this.preorder(node.left, result);
-                    this.preorder(node.right, result);
+                    this.preorderList.push(node.value);
+                    traverse(node.left);
+                    traverse(node.right);
                 }
-                return result;
-            }
+            };
 
-            inorder(node = this.root, result = []) {
+            traverse(this.root);
+            return this.preorderList;
+        }
+
+        inorder() {
+            this.inorderList = [];
+            const traverse = node => {
                 if (node) {
-                    this.inorder(node.left, result);
-                    result.push(node.value);
-                    this.inorder(node.right, result);
+                    traverse(node.left);
+                    this.inorderList.push(node.value);
+                    traverse(node.right);
                 }
-                return result;
-            }
+            };
 
-            postorder(node = this.root, result = []) {
+            traverse(this.root);
+            return this.inorderList;
+        }
+
+        postorder() {
+            this.postorderList = [];
+            const traverse = node => {
                 if (node) {
-                    this.postorder(node.left, result);
-                    this.postorder(node.right, result);
-                    result.push(node.value);
+                    traverse(node.left);
+                    traverse(node.right);
+                    this.postorderList.push(node.value);
                 }
-                return result;
+            };
+
+            traverse(this.root);
+            return this.postorderList;
+        }
+    }
+
+    // Crear el árbol con los valores proporcionados
+    const tree = new BinaryTree();
+    [71, 81, 96, 55, 77, 69, 89].forEach(value => tree.insert(value));
+
+    // Calcular los recorridos
+    const preorderList = tree.preorder();
+    const inorderList = tree.inorder();
+    const postorderList = tree.postorder();
+
+    // Variable para zoom
+    let nodeSize = 50; // Tamaño inicial del nodo
+
+    // Función para dibujar el árbol
+    function drawTree(containerId, root, highlightedNodes = [], currentNode = null) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+
+        // Actualizar la variable CSS para el tamaño del nodo
+        document.documentElement.style.setProperty('--node-size', `${nodeSize}px`);
+
+        // Función para calcular posiciones
+        const calculatePositions = (node, level, position, positions = {}) => {
+            if (!node) return positions;
+
+            const horizontalSpacing = containerWidth / Math.pow(2, level + 1);
+            const x = position * horizontalSpacing;
+            const y = level * (nodeSize * 1.6) + 50;
+
+            positions[node.value] = { x, y, level };
+
+            calculatePositions(node.left, level + 1, position * 2 - 0.5, positions);
+            calculatePositions(node.right, level + 1, position * 2 + 0.5, positions);
+
+            return positions;
+        };
+
+        const positions = calculatePositions(root, 0, 1);
+
+        // Dibujar conexiones primero
+        for (const [value, pos] of Object.entries(positions)) {
+            const node = findNode(root, parseInt(value));
+            if (node.left) {
+                const childPos = positions[node.left.value];
+                drawLine(container, pos.x, pos.y, childPos.x, childPos.y);
+            }
+            if (node.right) {
+                const childPos = positions[node.right.value];
+                drawLine(container, pos.x, pos.y, childPos.x, childPos.y);
             }
         }
 
-        const canvas = document.getElementById('treeCanvas');
-        const ctx = canvas.getContext('2d');
+        // Luego dibujar nodos
+        for (const [value, pos] of Object.entries(positions)) {
+            const isHighlighted = highlightedNodes.includes(parseInt(value));
+            const isCurrent = currentNode === parseInt(value);
+            drawNode(container, pos.x, pos.y, value, isHighlighted, isCurrent);
+        }
+    }
 
-        function drawNode(x, y, value) {
-            ctx.beginPath();
-            ctx.arc(x, y, 20, 0, 2 * Math.PI);
-            ctx.fillStyle = '#3498db';
-            ctx.fill();
-            ctx.strokeStyle = '#2980b9';
-            ctx.stroke();
-            
-            ctx.fillStyle = 'white';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.font = '14px Arial';
-            ctx.fillText(value, x, y);
+    function findNode(root, value) {
+        if (!root) return null;
+        if (root.value === value) return root;
+
+        const leftResult = findNode(root.left, value);
+        if (leftResult) return leftResult;
+
+        return findNode(root.right, value);
+    }
+
+    function drawNode(container, x, y, value, isHighlighted = false, isCurrent = false) {
+        const node = document.createElement('div');
+        node.className = 'tree-node';
+        node.textContent = value;
+        // Centrar el nodo en las coordenadas
+        node.style.left = `${x - (nodeSize/2)}px`;
+        node.style.top = `${y - (nodeSize/2)}px`;
+
+        if (isHighlighted) {
+            node.style.backgroundColor = '#2ecc71'; // Verde
         }
 
-        function drawLine(x1, y1, x2, y2) {
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.strokeStyle = '#95a5a6';
-            ctx.stroke();
+        if (isCurrent) {
+            node.style.backgroundColor = '#e74c3c'; // Rojo
         }
 
-        function calculateNodePositions(node, level, x, width) {
-            if (!node) return;
+        node.addEventListener('click', () => {
+            const nodeInfo = document.getElementById('node-info');
+            document.getElementById('info-value').textContent = value;
+            document.getElementById('info-preorden').textContent = preorderList.indexOf(parseInt(value)) + 1;
+            document.getElementById('info-inorden').textContent = inorderList.indexOf(parseInt(value)) + 1;
+            document.getElementById('info-postorden').textContent = postorderList.indexOf(parseInt(value)) + 1;
 
-            node.x = x;
-            node.y = level * 80 + 50;
+            nodeInfo.style.display = 'block';
+            setTimeout(() => {
+                nodeInfo.style.display = 'none';
+            }, 3000);
+        });
 
-            const nextWidth = width / 2;
-            calculateNodePositions(node.left, level + 1, x - nextWidth, nextWidth);
-            calculateNodePositions(node.right, level + 1, x + nextWidth, nextWidth);
-        }
+        container.appendChild(node);
+    }
 
-        function drawTree(root) {
-            if (!root) return;
+    function drawLine(container, x1, y1, x2, y2) {
+        const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
 
-            const queue = [root];
-            while (queue.length > 0) {
-                const node = queue.shift();
-                
-                if (node.left) {
-                    drawLine(node.x, node.y, node.left.x, node.left.y);
-                    queue.push(node.left);
-                }
-                if (node.right) {
-                    drawLine(node.x, node.y, node.right.x, node.right.y);
-                    queue.push(node.right);
-                }
-                
-                drawNode(node.x, node.y, node.value);
+        const line = document.createElement('div');
+        line.className = 'tree-edge';
+        line.style.width = `${length}px`;
+        line.style.left = `${x1}px`;
+        line.style.top = `${y1}px`;
+        line.style.transform = `rotate(${angle}deg)`;
+
+        container.appendChild(line);
+    }
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+        // Dibujar árboles iniciales
+        drawTree('original-tree', tree.root);
+        drawTree('preorden-tree', tree.root);
+        drawTree('inorden-tree', tree.root);
+        drawTree('postorden-tree', tree.root);
+
+        // Cambio de tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Desactivar todas las tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                // Activar la tab actual
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Botón de reinicio
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            drawTree('original-tree', tree.root);
+            drawTree('preorden-tree', tree.root);
+            drawTree('inorden-tree', tree.root);
+            drawTree('postorden-tree', tree.root);
+
+            document.querySelectorAll('.animation-node').forEach(node => {
+                node.style.left = '0';
+            });
+        });
+
+        // Botón de visualización
+        document.getElementById('btn-visualize').addEventListener('click', () => {
+            animateTraversal('original', [71, 55, 69, 81, 77, 96, 89]);
+            animateTraversal('preorden', preorderList);
+            animateTraversal('inorden', inorderList);
+            animateTraversal('postorden', postorderList);
+        });
+
+        // Botones de zoom
+        document.getElementById('btn-zoom-in').addEventListener('click', () => {
+            if (nodeSize < 100) {
+                nodeSize += 10;
+                drawTree('original-tree', tree.root);
+                drawTree('preorden-tree', tree.root);
+                drawTree('inorden-tree', tree.root);
+                drawTree('postorden-tree', tree.root);
             }
-        }
+        });
 
-        // Create and populate the tree
-        const tree = new BinaryTree();
-        [5, 6, 2, 8, 1].forEach(value => tree.insert(value));
+        document.getElementById('btn-zoom-out').addEventListener('click', () => {
+            if (nodeSize > 30) {
+                nodeSize -= 10;
+                drawTree('original-tree', tree.root);
+                drawTree('preorden-tree', tree.root);
+                drawTree('inorden-tree', tree.root);
+                drawTree('postorden-tree', tree.root);
+            }
+        });
+    });
 
-        // Calculate positions and draw the tree
-        calculateNodePositions(tree.root, 0, canvas.width / 2, canvas.width / 4);
-        drawTree(tree.root);
+    // Animación de recorridos
+    function animateTraversal(type, traversalList) {
+        const animationNode = document.getElementById(`${type}-animation`);
+        animationNode.textContent = traversalList[0];
 
-        // Display traversals
-        document.getElementById('preorder').textContent = tree.preorder().join(' → ');
-        document.getElementById('inorder').textContent = tree.inorder().join(' → ');
-        document.getElementById('postorder').textContent = tree.postorder().join(' → ');
-    </script>
+        let visited = [];
+        let step = 0;
+
+        const interval = setInterval(() => {
+            if (step < traversalList.length) {
+                const currentValue = traversalList[step];
+                animationNode.textContent = currentValue;
+                animationNode.style.left = `${(step / (traversalList.length - 1)) * 100}%`;
+
+                visited.push(currentValue);
+                drawTree(`${type}-tree`, tree.root, visited, currentValue);
+
+                step++;
+            } else {
+                clearInterval(interval);
+            }
+        }, 1000);
+    }
+</script>
 </body>
 </html>

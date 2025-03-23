@@ -1,4 +1,5 @@
-package umg.progra2;
+package umg.progra2.ArbolBinario;
+
 public class Nodo {
     protected int dato;
     protected Nodo izdo;
